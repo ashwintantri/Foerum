@@ -3,9 +3,9 @@ import 'whatwg-fetch';
 import CommentList from './CommentList';
 import CommentForm from './CommentForm';
 import './CommentBox.css';
-var Sentiment = require('sentiment');
-var sentiment = new Sentiment();
-
+import arrayToSentence from 'array-to-sentence';
+import Sentiment from 'sentiment';
+const sentiment = new Sentiment();
 class CommentBox extends Component {
   constructor() {
     super();
@@ -78,7 +78,7 @@ class CommentBox extends Component {
       body: JSON.stringify({ author, text }),
     }).then(res => res.json()).then((res) => {
       if (!res.success) this.setState({ error: res.error.message || res.error });
-      else this.setState({ author: '', text: '', sentiment:sentiment.analyze(this.state.text).score,error: null });
+      else this.setState({ author: '', text: '', sentiment:sentiment.analyze(arrayToSentence(this.state.data.map(a=>a.text))).score,error: null });
     });
   }
 
@@ -90,7 +90,7 @@ class CommentBox extends Component {
       body: JSON.stringify({ author, text }),
     }).then(res => res.json()).then((res) => {
       if (!res.success) this.setState({ error: res.error.message || res.error });
-      else this.setState({ author: '', text: '', sentiment:sentiment.analyze(this.state.text).score,updateId: null });
+      else this.setState({ author: '', text: '', sentiment:sentiment.analyze(arrayToSentence(this.state.data.map(a=>a.text))).score,updateId: null });
     });
   }
 
@@ -106,6 +106,16 @@ class CommentBox extends Component {
   }
 
   render() {
+    let currSentiment = this.state.sentiment;
+    if(currSentiment != null)
+    {
+      if(currSentiment > 0) currSentiment = "Positive"
+      else if(currSentiment < 0)
+      {
+        currSentiment = "Negative";
+      }
+      else currSentiment = "";
+    }
     return (
       <div className="container">
         <div className="comments">
@@ -125,7 +135,7 @@ class CommentBox extends Component {
           />
         </div>
         {this.state.error && <p>{this.state.error}</p>}
-        {this.state.sentiment >0 ? "positive":"negative"}
+        {currSentiment}
       </div>
     );
   }
