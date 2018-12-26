@@ -11,7 +11,7 @@ const API_PORT = process.env.API_PORT || 3001;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(logger('dev'));
-mongoose.connect("mongodb://<username>:<password>@ds245661.mlab.com:45661/restful",{useNewUrlParser:true});
+mongoose.connect("mongodb://user:dbpass@ds245661.mlab.com:45661/restful",{useNewUrlParser:true});
 //(creds frome prev commit wont work!)
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));

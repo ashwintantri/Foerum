@@ -3,6 +3,8 @@ import 'whatwg-fetch';
 import CommentList from './CommentList';
 import CommentForm from './CommentForm';
 import './CommentBox.css';
+var Sentiment = require('sentiment');
+var sentiment = new Sentiment();
 
 class CommentBox extends Component {
   constructor() {
@@ -12,6 +14,7 @@ class CommentBox extends Component {
       error: null,
       author: '',
       comment: '',
+      sentiment:'',
       updateId: null,
     };
     this.pollInterval = null;
@@ -21,7 +24,7 @@ class CommentBox extends Component {
     this.loadCommentsFromServer();
     if (!this.pollInterval) {
       this.pollInterval = setInterval(this.loadCommentsFromServer, 2000);
-    }
+    } 
   }
 
   componentWillUnmount() {
@@ -38,7 +41,7 @@ class CommentBox extends Component {
   onUpdateComment = (id) => {
     const oldComment = this.state.data.find(c => c._id === id);
     if (!oldComment) return;
-    this.setState({ author: oldComment.author, text: oldComment.text, updateId: id });
+    this.setState({ author: oldComment.author, text: oldComment.text,sentiment:'',updateId: id });
   }
 
   onDeleteComment = (id) => {
@@ -66,6 +69,7 @@ class CommentBox extends Component {
   }
 
   submitNewComment = () => {
+    var thing = JSON.parse(JSON.stringify(sentiment.analyze(this.state.text)));
     const { author, text } = this.state;
     const data = [...this.state.data, { author, text, _id: Date.now().toString() }];
     this.setState({ data });
@@ -75,11 +79,12 @@ class CommentBox extends Component {
       body: JSON.stringify({ author, text }),
     }).then(res => res.json()).then((res) => {
       if (!res.success) this.setState({ error: res.error.message || res.error });
-      else this.setState({ author: '', text: '', error: null });
+      else this.setState({ author: '', text: '', sentiment:thing.score,error: null });
     });
   }
 
   submitUpdatedComment = () => {
+    var thing = JSON.parse(JSON.stringify(sentiment.analyze(this.state.text)));
     const { author, text, updateId } = this.state;
     fetch(`/api/comments/${updateId}`, {
       method: 'PUT',
@@ -87,7 +92,7 @@ class CommentBox extends Component {
       body: JSON.stringify({ author, text }),
     }).then(res => res.json()).then((res) => {
       if (!res.success) this.setState({ error: res.error.message || res.error });
-      else this.setState({ author: '', text: '', updateId: null });
+      else this.setState({ author: '', text: '', sentiment:thing.score,updateId: null });
     });
   }
 
@@ -98,7 +103,7 @@ class CommentBox extends Component {
       .then(data => data.json())
       .then((res) => {
         if (!res.success) this.setState({ error: res.error });
-        else this.setState({ data: res.data });
+        else {this.setState({ data: res.data });}
       });
   }
 
@@ -122,6 +127,7 @@ class CommentBox extends Component {
           />
         </div>
         {this.state.error && <p>{this.state.error}</p>}
+        {this.state.sentiment}
       </div>
     );
   }

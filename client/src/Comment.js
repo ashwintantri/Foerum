@@ -25,8 +25,7 @@ Comment.propTypes = {
   children: PropTypes.string.isRequired,
   id: PropTypes.string.isRequired,
   handleUpdateComment: PropTypes.func.isRequired,
-  handleDeleteComment: PropTypes.func.isRequired,
-  timestamp: PropTypes.string.isRequired,
+  handleDeleteComment: PropTypes.func.isRequired
 };
 
 export default Comment;
