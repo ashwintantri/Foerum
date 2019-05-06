@@ -3,6 +3,8 @@ import bodyParser from 'body-parser';
 import logger from 'morgan';
 import mongoose from 'mongoose';
 import Comment from './models/comment';
+const Sentiment = require('sentiment');
+var sentiment = new Sentiment();
 
 const app = express();
 const router = express.Router();
@@ -11,7 +13,7 @@ const API_PORT = process.env.API_PORT || 3001;
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(logger('dev'));
-mongoose.connect("mongodb://user:pass@ds245661.mlab.com:45661/restful",{useNewUrlParser:true});
+mongoose.connect("mongodb://dbuser:dbpass@ds245661.mlab.com:45661/restful",{useNewUrlParser:true});
 //(creds frome prev commit wont work!)
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
@@ -21,7 +23,10 @@ router.get('/', (req, res) => {
 router.get('/comments',(req,res)=>{
     Comment.find((err,comments)=>{
         if(err) return res.json({success:false,error:err});
-        return res.json({success:true,data:comments});
+        else {
+          comments.forEach((comment) => console.log(comment.sentiment));
+          return res.json({success:true,data:comments});
+        }
     });
 });
 router.post('/comments',(req,res)=>{
@@ -36,6 +41,7 @@ router.post('/comments',(req,res)=>{
     }
     comment.author = author;
     comment.text = text;
+    comment.sentiment = sentiment.analyze(comment.text).score;
     comment.save(err=>{
         if(err) return res.json({success:false,error:err});
         return res.json({success:true});
